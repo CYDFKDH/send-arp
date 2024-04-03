@@ -80,7 +80,8 @@ int main(int argc, char* argv[]) {
 
 	char* dev = argv[1];
 	char errbuf[PCAP_ERRBUF_SIZE];
-	pcap_t* handle = pcap_open_live(dev, 0, 0, 0, errbuf);
+	pcap_t* handle = pcap_open_live(dev, BUFSIZ, 1, 1, errbuf);
+	
 	if (handle == nullptr) {
 		fprintf(stderr, "couldn't open device %s(%s)\n", dev, errbuf);
 		return -1;
@@ -142,8 +143,9 @@ int main(int argc, char* argv[]) {
 			EthArpPacket* ea_pkt = (EthArpPacket*)pkt;
 			if(ntohs(ea_pkt->arp_.op_) != ArpHdr::Reply) continue;
 			if(ntohl(ea_pkt->arp_.sip_) != s_ip) continue;
-			if(ntohs(ea_pkt->arp_.tip_) != atk_ip) continue;
+			if(ntohl(ea_pkt->arp_.tip_) != atk_ip) continue;
 			if(memcmp(((uint8_t*)(ea_pkt->arp_.tmac_)), ((uint8_t*)atk_mac), 6) != 0) continue;
+			
 			s_mac = Mac(ea_pkt->arp_.smac_);
 			break;
 		}
